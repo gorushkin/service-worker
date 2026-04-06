@@ -6,6 +6,14 @@ const sw = self
 
 const CACHE_NAME = 'app-shell-v1'
 const APP_SHELL = ['/', '/index.html']
+const TODO_URL = 'https://jsonplaceholder.typicode.com/todos/1'
+const OFFLINE_TODO = {
+  userId: 0,
+  id: 1,
+  title: 'offline mode: service worker returned fallback data',
+  completed: false,
+  source: 'offline-fallback',
+}
 
 sw.addEventListener('install', (event) => {
   event.waitUntil(
@@ -38,6 +46,11 @@ sw.addEventListener('fetch', (event) => {
     return
   }
 
+  if (request.url === TODO_URL) {
+    event.respondWith(handleTodoRequest(request))
+    return
+  }
+
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -56,5 +69,26 @@ sw.addEventListener('fetch', (event) => {
     }),
   )
 })
+
+const handleTodoRequest = async (request: Request) => {
+  try {
+    const networkResponse = await fetch(request)
+    const responseClone = networkResponse.clone()
+
+    void caches.open(CACHE_NAME).then((cache) => {
+      cache.put(request, responseClone)
+    })
+
+    return networkResponse
+  } catch {
+    return new Response(JSON.stringify(OFFLINE_TODO), {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Data-Source': 'service-worker-offline-fallback',
+      },
+      status: 200,
+    })
+  }
+}
 
 export {}
