@@ -3,12 +3,14 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 
-if ('serviceWorker' in navigator) {
+const isSecureServiceWorkerContext =
+  window.location.protocol === 'https:' ||
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1'
+
+if ('serviceWorker' in navigator && isSecureServiceWorkerContext) {
   void window.addEventListener('load', () => {
-    void navigator.serviceWorker.register(
-      new URL('./sw.ts', import.meta.url),
-      { type: 'module' },
-    )
+    void navigator.serviceWorker.register('/sw.js')
   })
 }
 

@@ -1,9 +1,3 @@
-/// <reference lib="WebWorker" />
-
-declare const self: ServiceWorkerGlobalScope
-
-const sw = self
-
 const CACHE_NAME = 'app-shell-v1'
 const APP_SHELL = ['/', '/index.html']
 const TODO_URL = 'https://jsonplaceholder.typicode.com/todos/1'
@@ -15,17 +9,21 @@ const OFFLINE_TODO = {
   source: 'offline-fallback',
 }
 
-sw.addEventListener('install', (event) => {
+self.addEventListener('install', (event) => {
+  console.log('SW install')
+
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(APP_SHELL)
     }),
   )
 
-  sw.skipWaiting()
+  self.skipWaiting()
 })
 
-sw.addEventListener('activate', (event) => {
+self.addEventListener('activate', (event) => {
+  console.log('SW activate')
+
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -36,11 +34,13 @@ sw.addEventListener('activate', (event) => {
     }),
   )
 
-  event.waitUntil(sw.clients.claim())
+  event.waitUntil(self.clients.claim())
 })
 
-sw.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', (event) => {
   const { request } = event
+
+  console.log('SW fetch:', request.url)
 
   if (request.method !== 'GET') {
     return
@@ -70,7 +70,7 @@ sw.addEventListener('fetch', (event) => {
   )
 })
 
-const handleTodoRequest = async (request: Request) => {
+async function handleTodoRequest(request) {
   try {
     const networkResponse = await fetch(request)
     const responseClone = networkResponse.clone()
@@ -90,5 +90,3 @@ const handleTodoRequest = async (request: Request) => {
     })
   }
 }
-
-export {}

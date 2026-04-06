@@ -105,7 +105,7 @@ function App() {
               <code>src/main.tsx</code> регистрирует worker
             </li>
             <li>
-              <code>src/sw.ts</code> содержит lifecycle и fetch-обработчик
+              <code>public/sw.js</code> содержит lifecycle и fetch-обработчик
             </li>
             <li>
               <code>src/App.tsx</code> служит как стартовый экран проекта
